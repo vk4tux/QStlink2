@@ -762,6 +762,27 @@ bool stlinkv2::setLoaderBuffer(const quint32 addr, const QByteArray& buf) {
     return true;
 }
 
+bool stlinkv2::setLoaderOptions(quint32 options)
+{
+    using namespace Loader::Addr;
+    uchar ar_tmp[4];
+    qToLittleEndian(options, ar_tmp);
+    QByteArray write_buf;
+    write_buf.append((const char*)ar_tmp, sizeof ar_tmp);
+    return (this->writeMem32(PARAMS+OFFSET_OPTIONS, write_buf) > 0
+            && this->getLoaderOptions() == options);
+}
+
+quint32 stlinkv2::getLoaderOptions()
+{
+    PrintFuncName();
+    QByteArray read_buf;
+    using namespace Loader::Addr;
+    this->readMem32(&read_buf, PARAMS+OFFSET_OPTIONS);
+    quint32 tmp = qFromLittleEndian<quint32>((uchar*)read_buf.constData());
+    return tmp;
+}
+
 bool stlinkv2::setLoaderStatus(quint32 status)
 {
     using namespace Loader::Addr;
@@ -773,8 +794,8 @@ bool stlinkv2::setLoaderStatus(quint32 status)
             && this->getLoaderStatus() == status);
 }
 
-quint32 stlinkv2::getLoaderStatus() {
-
+quint32 stlinkv2::getLoaderStatus()
+{
     PrintFuncName();
     QByteArray read_buf;
     using namespace Loader::Addr;

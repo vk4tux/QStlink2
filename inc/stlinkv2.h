@@ -438,6 +438,18 @@ public slots:
      *
      * @return bool
      */
+    bool setLoaderOptions(quint32 options);
+    /**
+     * @brief
+     *
+     * @return quint32
+     */
+    quint32 getLoaderOptions();
+    /**
+     * @brief
+     *
+     * @return quint32
+     */
     bool setLoaderStatus(quint32 status);
     /**
      * @brief

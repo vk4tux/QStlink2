@@ -148,7 +148,7 @@ typedef struct {
   __IO uint32_t STATUS; /*!Address offset: 0x08 - Status. Set by program and debugger. */
   __IO uint32_t POS;    /*!Address offset: 0x0C - Current position */
   __IO uint32_t TEST;   /*!Address offset: 0x10 - For testing */
-
+  __IO uint32_t OPTIONS;/*!Address offset: 0x14 - Various options */
 } PARAMS_TypeDef;
 
 extern uint32_t __params__;
@@ -159,9 +159,9 @@ int loader(void) {
   uint32_t i, from, to;
   uint32_t erased_sectors = 0;
   
-  if (PARAMS->STATUS & MASK_PROTEC)
+  if (PARAMS->OPTIONS & MASK_PROTEC)
   {
-    PARAMS->STATUS &= ~MASK_PROTEC;
+    PARAMS->OPTIONS &= ~MASK_PROTEC;
     FLASH_Unlock();
     FLASH_SetLatency(FLASH_Latency_0);
     FLASH_OB_Unlock();
@@ -169,6 +169,8 @@ int loader(void) {
     FLASH_OB_RDPConfig(OB_RDP_Level_0);
     PARAMS->STATUS |= MASK_PROTEC_OK;
     FLASH_OB_Launch();
+    asm volatile("bkpt");
+    asm volatile("nop");
   }
 
   for (i = 0; i < PARAMS_LEN; i += 4) { // Clear parameters

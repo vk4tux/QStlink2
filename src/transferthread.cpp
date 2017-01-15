@@ -60,7 +60,7 @@ void transferThread::sendWithLoader(const QString &filename)
         qCritical("Could not open the file.");
         return;
     }
-    emit sendLock(true);
+    //emit sendLock(true);
     mStop = false;
     mStlink->hardResetMCU(); // We stop the MCU
     quint32 step_size = 2048;
@@ -72,9 +72,7 @@ void transferThread::sendWithLoader(const QString &filename)
     quint32 progress, oldprogress, read;
     char *buf2 = new char[step_size];
 
-    mStlink->resetMCU();
     mStlink->flush();
-
     if (!mStlink->sendLoader())
     {
         emit sendLog("Failed to send loader!");
@@ -82,28 +80,28 @@ void transferThread::sendWithLoader(const QString &filename)
     }
     emit sendLog("Loader uploaded");
 
-   if (mStlink->setLoaderStatus(Loader::Masks::PROTEC))
+   if (mStlink->setLoaderOptions(Loader::Masks::PROTEC))
        emit sendLog("Loader settings OK");
 
     mStlink->runMCU(); // The loader unlocks the flash and reset.
 
     uint wait = 0;
-    while (wait < 40 && mStlink->getStatus() == STLink::Status::CORE_RUNNING) { // Wait for the reset
+    while (wait < 30 && mStlink->getStatus() == STLink::Status::CORE_RUNNING) { // Wait for the reset
             QThread::msleep(100);
             wait++;
             if (mStop) break;
-            if (mStlink->getLoaderStatus() & Loader::Masks::PROTEC_OK) break;
+//            if (mStlink->getLoaderStatus() & Loader::Masks::PROTEC_OK) break;
     }
 
+    // Send loader again
+    mStlink->hardResetMCU();
+    mStlink->flush();
+/*
     if (mStlink->getLoaderStatus() & Loader::Masks::PROTEC_OK)
         emit sendLog("Unlock complete");
     else
         emit sendLog("Unlock failed");
-
-    // Send loader again
-    mStlink->hardResetMCU();
-    mStlink->resetMCU();
-    mStlink->flush();
+*/
     if (!mStlink->sendLoader())
     {
         emit sendLog("Failed to send loader!");
@@ -111,12 +109,13 @@ void transferThread::sendWithLoader(const QString &filename)
     }
     emit sendLog("Loader uploaded");
 
-    if (mStlink->setLoaderStatus(0))
+    if (mStlink->setLoaderOptions(0))
         emit sendLog("Loader settings OK");
     mStlink->runMCU(); // The loader will stop at the beginning of the loop
 
     while (mStlink->getStatus() == STLink::Status::CORE_RUNNING) { // Wait for the breakpoint
-            QThread::msleep(100);
+            QThread::msleep(200);
+            emit sendLog(QString().sprintf("PC register at 0x%08x", mStlink->readRegister(15)));
             if (mStop) break;
     }
 
@@ -125,8 +124,14 @@ void transferThread::sendWithLoader(const QString &filename)
 
     if (bkp1 < mStlink->mDevice->value("sram_base") || bkp1 > mStlink->mDevice->value("sram_base")+mStlink->mDevice->value("buffer_size")) {
 
-        qCritical("Current PC is not in the RAM area: %08x", mStlink->mDevice->value("sram_base"));
+        qCritical("Current PC is not in the RAM area: 0x%08x", bkp1);
+        emit sendLog("Failed to set PC register!");
+        emit sendLoaderStatus("Idle");
+        emit sendProgress(100);
         return;
+    }
+    else {
+        emit sendLog(QString().sprintf("PC register at 0x%08x", bkp1));
     }
 
     progress = 0;
