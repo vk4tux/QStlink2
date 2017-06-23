@@ -420,8 +420,7 @@
       <CR_LOCK>0x1F</CR_LOCK>
       <CR_SER>0x1</CR_SER>
       <CR_PGSIZE>0x8</CR_PGSIZE>
-      <buffer_size>0x1000</buffer_size>
-      <loader>loader_f0.bin</loader>
+      <buffer_size>0x8000</buffer_size>
     </device>
     
   </devices>
