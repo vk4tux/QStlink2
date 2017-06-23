@@ -412,8 +412,8 @@
     <device type="STM32F09x" coretype="CM0">
       <core_id>0x0bb11477</core_id>
       <chip_id>0x442</chip_id>
-      <flash_size_reg>0x1FFFF7CC</flash_size_reg>
-      <flash_int_reg>0x40022000</flash_int_reg>
+      <flash_size_reg>0x1FF0F442</flash_size_reg>
+      <flash_int_reg>0x40023c00</flash_int_reg>
       <loader>loader_f4.bin</loader>
       <SR_BSY>0x10</SR_BSY>
       <CR_STRT>0x10</CR_STRT>
